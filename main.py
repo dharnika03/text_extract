@@ -1,6 +1,8 @@
 from flask import Flask, request, jsonify
-import requests
 from pypdf import PdfReader
+
+
+import urllib.request
 
 
 def download_file(url, filename=None):
@@ -12,15 +14,15 @@ def download_file(url, filename=None):
         filename: The filename to save the downloaded file as. If not specified,
             the filename will be extracted from the URL.
     """
-    response = requests.get(url, stream=True)
-    response.raise_for_status()  # Raise an exception for unsuccessful downloads
-
     if filename is None:
         filename = url.split("/")[-1]  # Extract filename from URL
 
-    with open(filename, "wb") as file:
-        for chunk in response.iter_content(1024):
-            if chunk:  # filter out keep-alive new chunks
+    with urllib.request.urlopen(url) as response:
+        with open(filename, "wb") as file:
+            while True:
+                chunk = response.read(1024)
+                if not chunk:
+                    break
                 file.write(chunk)
 
     return filename
